@@ -16,6 +16,11 @@ class AppConstants {
   static const String prefIsLoggedIn = 'is_logged_in';
   static const String prefUserEmail = 'user_email';
   static const String prefSchedules = 'schedules';
+  static const String prefDataVersion = 'data_version';
+
+  /// Bump this number whenever the Schedule model changes or you want
+  /// all existing installs to reseed demo data on next launch.
+  static const int currentDataVersion = 2;
 
   // ── Location ──────────────────────────────────────────────────────────────
   /// Maximum allowed distance (in metres) for a valid check-in.

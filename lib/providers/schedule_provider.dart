@@ -46,20 +46,46 @@ class ScheduleProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       final prefs = await SharedPreferences.getInstance();
+
+      // ── Version check: wipe stale data from older builds ──────────────────
+      final storedVersion = prefs.getInt(AppConstants.prefDataVersion) ?? 0;
+      if (storedVersion < AppConstants.currentDataVersion) {
+        await prefs.remove(AppConstants.prefSchedules);
+        await prefs.setInt(
+          AppConstants.prefDataVersion,
+          AppConstants.currentDataVersion,
+        );
+        _schedules.clear();
+        _seedDemoData();
+        await _persist();
+        _setLoading(false);
+        return;
+      }
+
+      // ── Normal load ───────────────────────────────────────────────────────
       final jsonList = prefs.getStringList(AppConstants.prefSchedules) ?? [];
+
+      final parsed = <Schedule>[];
+      for (final raw in jsonList) {
+        try {
+          parsed.add(Schedule.fromMap(jsonDecode(raw) as Map<String, dynamic>));
+        } catch (_) {
+          // skip corrupt entry
+        }
+      }
+
       _schedules
         ..clear()
-        ..addAll(
-          jsonList.map(
-            (s) => Schedule.fromMap(jsonDecode(s) as Map<String, dynamic>),
-          ),
-        );
+        ..addAll(parsed);
 
-      // Seed demo data if nothing is stored yet.
+      // Always seed if nothing survived parsing.
       if (_schedules.isEmpty) {
         _seedDemoData();
+        await _persist();
       }
     } catch (_) {
+      // Storage completely unavailable — use demo data in memory.
+      _schedules.clear();
       _seedDemoData();
     }
     _setLoading(false);
@@ -154,6 +180,10 @@ class ScheduleProvider extends ChangeNotifier {
   Future<void> resetToDemo() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(AppConstants.prefSchedules);
+    await prefs.setInt(
+      AppConstants.prefDataVersion,
+      AppConstants.currentDataVersion,
+    );
     _schedules.clear();
     _seedDemoData();
     await _persist();

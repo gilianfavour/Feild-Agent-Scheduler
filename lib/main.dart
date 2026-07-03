@@ -86,30 +86,72 @@ class FieldAgentSchedulerApp extends StatelessWidget {
   ThemeData _buildTheme(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
 
+    // ── Hand-crafted ColorScheme anchored to #2563EB cobalt ──────────────────
+    // We start from seed to get all the Material 3 roles, then override the
+    // primary family so every widget that reads colorScheme.primary uses the
+    // exact cobalt — not the pale tone the seed algorithm derives.
+    final base = ColorScheme.fromSeed(
+      seedColor: AppConstants.primaryAccent,
+      brightness: brightness,
+    );
+
+    final colorScheme = base.copyWith(
+      primary: AppConstants.primaryAccent, // #2563EB  — buttons, FAB, active
+      onPrimary: Colors.white,
+      primaryContainer: AppConstants.primaryAccent.withValues(
+        alpha: isDark ? 0.25 : 0.12,
+      ), // tinted container
+      onPrimaryContainer: isDark ? Colors.white : AppConstants.deepNavy,
+      secondary: AppConstants.primaryAccent,
+      onSecondary: Colors.white,
+      surface: isDark ? AppConstants.slate800 : Colors.white,
+      onSurface: isDark ? Colors.white : AppConstants.deepNavy,
+      surfaceContainerHighest: isDark
+          ? const Color(0xFF1E293B)
+          : const Color(0xFFEFF2F7),
+      outline: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+      outlineVariant: isDark
+          ? const Color(0xFF1E293B)
+          : const Color(0xFFE2E8F0),
+    );
+
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppConstants.seedColor,
-        brightness: brightness,
-      ),
+      colorScheme: colorScheme,
       fontFamily: 'Roboto',
 
-      // AppBar
+      // ── Scaffold ────────────────────────────────────────────────────────────
+      scaffoldBackgroundColor: isDark
+          ? AppConstants.deepNavy
+          : AppConstants.slate50,
+
+      // ── AppBar ──────────────────────────────────────────────────────────────
       appBarTheme: AppBarTheme(
         centerTitle: false,
         scrolledUnderElevation: 2,
+        elevation: 0,
         backgroundColor: isDark ? AppConstants.deepNavy : Colors.white,
         foregroundColor: isDark ? Colors.white : AppConstants.deepNavy,
+        iconTheme: IconThemeData(
+          color: isDark ? Colors.white : AppConstants.deepNavy,
+        ),
+        systemOverlayStyle: isDark
+            ? SystemUiOverlayStyle.light
+            : const SystemUiOverlayStyle(
+                statusBarColor: Colors.transparent,
+                statusBarIconBrightness: Brightness.dark,
+              ),
         titleTextStyle: TextStyle(
-          fontSize: 20,
+          fontSize: 18,
           fontWeight: FontWeight.w700,
           color: isDark ? Colors.white : AppConstants.deepNavy,
+          fontFamily: 'Roboto',
         ),
       ),
 
-      // Cards
+      // ── Cards ────────────────────────────────────────────────────────────────
       cardTheme: CardThemeData(
-        elevation: AppConstants.cardElevation,
+        elevation: 1,
         color: isDark ? AppConstants.slate800 : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppConstants.borderRadius),
@@ -117,12 +159,8 @@ class FieldAgentSchedulerApp extends StatelessWidget {
         margin: EdgeInsets.zero,
       ),
 
-      // Scaffold
-      scaffoldBackgroundColor: isDark
-          ? const Color(0xFF0F172A)
-          : AppConstants.slate50,
-
-      // Navigation bar — cobalt active icon/label, transparent indicator (no pill)
+      // ── Bottom Navigation Bar ─────────────────────────────────────────────
+      // No pill indicator — active = cobalt icon + label only.
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: isDark ? AppConstants.slate800 : Colors.white,
         elevation: 8,
@@ -145,6 +183,7 @@ class FieldAgentSchedulerApp extends StatelessWidget {
           return TextStyle(
             fontSize: 11,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            fontFamily: 'Roboto',
             color: selected
                 ? AppConstants.primaryAccent
                 : (isDark ? AppConstants.slate200 : AppConstants.slate600),
@@ -152,25 +191,175 @@ class FieldAgentSchedulerApp extends StatelessWidget {
         }),
       ),
 
-      // Snack bar
-      snackBarTheme: SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-
-      // Input
-      inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+      // ── Filled Button ─────────────────────────────────────────────────────
+      // Uses colorScheme.primary so it automatically picks up cobalt.
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: AppConstants.primaryAccent,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          textStyle: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 15,
+            fontFamily: 'Roboto',
+          ),
         ),
       ),
 
-      // Filled button
-      filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+      // ── Outlined Button ───────────────────────────────────────────────────
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppConstants.primaryAccent,
+          side: BorderSide(
+            color: AppConstants.primaryAccent.withValues(alpha: 0.5),
           ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          textStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            fontFamily: 'Roboto',
+          ),
+        ),
+      ),
+
+      // ── Text Button ───────────────────────────────────────────────────────
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppConstants.primaryAccent,
+          textStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontFamily: 'Roboto',
+          ),
+        ),
+      ),
+
+      // ── FloatingActionButton ──────────────────────────────────────────────
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: AppConstants.primaryAccent,
+        foregroundColor: Colors.white,
+        elevation: 3,
+      ),
+
+      // ── FilterChip / Chips ────────────────────────────────────────────────
+      chipTheme: ChipThemeData(
+        selectedColor: AppConstants.primaryAccent.withValues(alpha: 0.15),
+        checkmarkColor: AppConstants.primaryAccent,
+        labelStyle: const TextStyle(fontSize: 13, fontFamily: 'Roboto'),
+        side: BorderSide(
+          color: AppConstants.primaryAccent.withValues(alpha: 0.3),
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+      ),
+
+      // ── Switch ────────────────────────────────────────────────────────────
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) =>
+              states.contains(WidgetState.selected) ? Colors.white : null,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? AppConstants.primaryAccent
+              : null,
+        ),
+      ),
+
+      // ── Progress Indicator ────────────────────────────────────────────────
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: AppConstants.primaryAccent,
+      ),
+
+      // ── Input Decoration ──────────────────────────────────────────────────
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: isDark ? AppConstants.slate800 : Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(
+            color: isDark ? const Color(0xFF334155) : AppConstants.slate200,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(
+            color: AppConstants.primaryAccent,
+            width: 2,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: AppConstants.errorColor),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(
+            color: AppConstants.errorColor,
+            width: 2,
+          ),
+        ),
+        labelStyle: TextStyle(
+          color: AppConstants.slate600,
+          fontSize: 14,
+          fontFamily: 'Roboto',
+        ),
+        hintStyle: TextStyle(
+          color: AppConstants.slate600.withValues(alpha: 0.5),
+          fontSize: 14,
+          fontFamily: 'Roboto',
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 14,
+        ),
+      ),
+
+      // ── Snack Bar ─────────────────────────────────────────────────────────
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: isDark ? AppConstants.slate800 : AppConstants.deepNavy,
+        contentTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          fontFamily: 'Roboto',
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+
+      // ── Dialog ────────────────────────────────────────────────────────────
+      dialogTheme: DialogThemeData(
+        backgroundColor: isDark ? AppConstants.slate800 : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        titleTextStyle: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: isDark ? Colors.white : AppConstants.deepNavy,
+          fontFamily: 'Roboto',
+        ),
+      ),
+
+      // ── Divider ───────────────────────────────────────────────────────────
+      dividerTheme: DividerThemeData(
+        color: isDark ? const Color(0xFF1E293B) : AppConstants.slate200,
+        thickness: 1,
+        space: 1,
+      ),
+
+      // ── ListTile ─────────────────────────────────────────────────────────
+      listTileTheme: ListTileThemeData(
+        iconColor: AppConstants.slate600,
+        subtitleTextStyle: TextStyle(
+          fontSize: 12,
+          color: AppConstants.slate600,
+          fontFamily: 'Roboto',
         ),
       ),
     );
