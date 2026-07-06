@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import '../models/schedule.dart';
 import '../providers/schedule_provider.dart';
 import '../services/location_service.dart';
 import '../utils/app_constants.dart';
+import 'map_picker_screen.dart';
 
 /// Shows full details of a single schedule and allows check-in / check-out.
 class ScheduleDetailsScreen extends StatefulWidget {
@@ -122,6 +125,8 @@ class _ScheduleDetailsScreenState extends State<ScheduleDetailsScreen> {
               children: [
                 _InfoRow(label: 'Customer', value: schedule.customerName),
                 _InfoRow(label: 'Location', value: schedule.locationName),
+                if (schedule.address.isNotEmpty)
+                  _InfoRow(label: 'Address', value: schedule.address),
               ],
             ),
             const SizedBox(height: 12),
@@ -141,6 +146,14 @@ class _ScheduleDetailsScreenState extends State<ScheduleDetailsScreen> {
                   value: schedule.longitude.toStringAsFixed(6),
                 ),
               ],
+            ),
+            const SizedBox(height: 12),
+
+            // Map preview
+            _MapPreviewCard(
+              latitude: schedule.latitude,
+              longitude: schedule.longitude,
+              label: schedule.locationName,
             ),
             const SizedBox(height: 12),
 
@@ -428,7 +441,189 @@ class _ScheduleDetailsScreenState extends State<ScheduleDetailsScreen> {
       DateFormat('MMM dd, yyyy • hh:mm a').format(dt);
 }
 
-// ── Helper widget ──────────────────────────────────────────────────────────────
+// ── Map preview card (OpenStreetMap via flutter_map) ──────────────────────────
+//
+// Why flutter_map?
+// flutter_map renders OpenStreetMap tiles — free, open-source, no API key,
+// no billing. The preview is non-interactive (gestures disabled) to avoid
+// accidental panning inside a scroll view. "Open Full Map" pushes the full
+// interactive MapPickerScreen.
+
+class _MapPreviewCard extends StatelessWidget {
+  final double latitude;
+  final double longitude;
+  final String label;
+
+  const _MapPreviewCard({
+    required this.latitude,
+    required this.longitude,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final point = LatLng(latitude, longitude);
+
+    return Card(
+      elevation: AppConstants.cardElevation,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ── Card header ───────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 12, 0),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.map_rounded,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'LOCATION MAP',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.primary,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => MapPickerScreen(
+                        initialLat: latitude,
+                        initialLng: longitude,
+                      ),
+                    ),
+                  ),
+                  icon: const Icon(Icons.open_in_full_rounded, size: 14),
+                  label: const Text(
+                    'Open Full Map',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── OSM map thumbnail ─────────────────────────────────────────────
+          SizedBox(
+            height: 180,
+            child: FlutterMap(
+              options: MapOptions(
+                initialCenter: point,
+                initialZoom: 15,
+                // Disable all gestures — this is a static preview inside
+                // a scrollable screen.
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.none,
+                ),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.example.feild_agent_scheduler',
+                  maxZoom: 19,
+                ),
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: point,
+                      width: 36,
+                      height: 44,
+                      alignment: Alignment.topCenter,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: AppConstants.primaryAccent,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 2.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppConstants.primaryAccent.withValues(
+                                    alpha: 0.4,
+                                  ),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.location_on_rounded,
+                              color: Colors.white,
+                              size: 14,
+                            ),
+                          ),
+                          Container(
+                            width: 2,
+                            height: 8,
+                            color: AppConstants.primaryAccent,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // ── Coordinate footer ─────────────────────────────────────────────
+          Container(
+            color: theme.colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.3,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.pin_drop_outlined,
+                  size: 14,
+                  color: AppConstants.slate600,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '${latitude.toStringAsFixed(6)},  '
+                  '${longitude.toStringAsFixed(6)}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppConstants.slate600,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── _InfoRow ───────────────────────────────────────────────────────────────────
 
 class _InfoRow extends StatelessWidget {
   final String label;

@@ -20,7 +20,7 @@ class AppConstants {
 
   /// Bump this number whenever the Schedule model changes or you want
   /// all existing installs to reseed demo data on next launch.
-  static const int currentDataVersion = 2;
+  static const int currentDataVersion = 3;
 
   // ── Location ──────────────────────────────────────────────────────────────
   /// Maximum allowed distance (in metres) for a valid check-in.

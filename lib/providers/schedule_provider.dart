@@ -96,6 +96,7 @@ class ScheduleProvider extends ChangeNotifier {
   Future<void> addSchedule({
     required String customerName,
     required String locationName,
+    String address = '',
     required double latitude,
     required double longitude,
     required String initialReport,
@@ -104,6 +105,7 @@ class ScheduleProvider extends ChangeNotifier {
       id: const Uuid().v4(),
       customerName: customerName,
       locationName: locationName,
+      address: address,
       latitude: latitude,
       longitude: longitude,
       initialReport: initialReport,
@@ -197,6 +199,7 @@ class ScheduleProvider extends ChangeNotifier {
         id: const Uuid().v4(),
         customerName: 'Acme Corporation',
         locationName: 'Acme HQ - Downtown',
+        address: 'Market St, San Francisco, CA 94105, USA',
         latitude: 37.7749,
         longitude: -122.4194,
         initialReport: 'Routine maintenance visit. Check all HVAC units.',
@@ -210,6 +213,7 @@ class ScheduleProvider extends ChangeNotifier {
         id: const Uuid().v4(),
         customerName: 'TechStart Inc.',
         locationName: 'TechStart Office - Midtown',
+        address: 'W 42nd St, New York, NY 10036, USA',
         latitude: 40.7580,
         longitude: -73.9855,
         initialReport:
@@ -222,6 +226,7 @@ class ScheduleProvider extends ChangeNotifier {
         id: const Uuid().v4(),
         customerName: 'Global Finance Ltd.',
         locationName: 'Finance Tower - Floor 12',
+        address: 'Victoria Embankment, London WC2R 2PP, UK',
         latitude: 51.5074,
         longitude: -0.1278,
         initialReport:
@@ -232,6 +237,7 @@ class ScheduleProvider extends ChangeNotifier {
         id: const Uuid().v4(),
         customerName: 'Sunrise Retail',
         locationName: 'Sunrise Mall - West Wing',
+        address: 'S Grand Ave, Los Angeles, CA 90015, USA',
         latitude: 34.0522,
         longitude: -118.2437,
         initialReport: 'POS system upgrade and staff training session.',
@@ -241,6 +247,7 @@ class ScheduleProvider extends ChangeNotifier {
         id: const Uuid().v4(),
         customerName: 'Metro Logistics',
         locationName: 'Metro Warehouse Zone B',
+        address: 'W Randolph St, Chicago, IL 60601, USA',
         latitude: 41.8781,
         longitude: -87.6298,
         initialReport:

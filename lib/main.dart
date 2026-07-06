@@ -11,6 +11,7 @@ import 'screens/main_shell.dart';
 import 'screens/create_schedule_screen.dart';
 import 'screens/schedule_details_screen.dart';
 import 'screens/checkout_screen.dart';
+import 'screens/map_picker_screen.dart';
 import 'utils/app_constants.dart';
 
 void main() async {
@@ -79,6 +80,7 @@ class FieldAgentSchedulerApp extends StatelessWidget {
         '/create-schedule': (_) => const CreateScheduleScreen(),
         '/schedule-details': (_) => const ScheduleDetailsScreen(),
         '/checkout': (_) => const CheckoutScreen(),
+        '/map-picker': (_) => const MapPickerScreen(),
       },
     );
   }

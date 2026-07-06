@@ -28,10 +28,20 @@ extension ScheduleStatusX on ScheduleStatus {
 }
 
 /// Core data model for a field agent schedule.
+///
+/// [address] is reverse-geocoded from [latitude]/[longitude] via the
+/// OpenStreetMap Nominatim service (through the `geocoding` package).
+/// It is optional — older stored records that pre-date the address field
+/// will have an empty string and display gracefully.
 class Schedule {
   final String id;
   final String customerName;
   final String locationName;
+
+  /// Human-readable address obtained from reverse geocoding.
+  /// Empty string when unavailable or not yet resolved.
+  final String address;
+
   final double latitude;
   final double longitude;
   final String initialReport;
@@ -45,6 +55,7 @@ class Schedule {
     required this.id,
     required this.customerName,
     required this.locationName,
+    this.address = '',
     required this.latitude,
     required this.longitude,
     required this.initialReport,
@@ -60,6 +71,7 @@ class Schedule {
     String? id,
     String? customerName,
     String? locationName,
+    String? address,
     double? latitude,
     double? longitude,
     String? initialReport,
@@ -73,6 +85,7 @@ class Schedule {
       id: id ?? this.id,
       customerName: customerName ?? this.customerName,
       locationName: locationName ?? this.locationName,
+      address: address ?? this.address,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       initialReport: initialReport ?? this.initialReport,
@@ -91,6 +104,7 @@ class Schedule {
       'id': id,
       'customerName': customerName,
       'locationName': locationName,
+      'address': address,
       'latitude': latitude,
       'longitude': longitude,
       'initialReport': initialReport,
@@ -107,6 +121,8 @@ class Schedule {
       id: map['id'] as String,
       customerName: map['customerName'] as String,
       locationName: map['locationName'] as String,
+      // Graceful fallback for records stored before the address field existed.
+      address: (map['address'] as String?) ?? '',
       latitude: (map['latitude'] as num).toDouble(),
       longitude: (map['longitude'] as num).toDouble(),
       initialReport: map['initialReport'] as String,
@@ -126,6 +142,9 @@ class Schedule {
 
   factory Schedule.fromJson(String source) =>
       Schedule.fromMap(jsonDecode(source) as Map<String, dynamic>);
+
+  /// Display-friendly location: prefer resolved address, fall back to locationName.
+  String get displayAddress => address.isNotEmpty ? address : locationName;
 
   @override
   bool operator ==(Object other) =>

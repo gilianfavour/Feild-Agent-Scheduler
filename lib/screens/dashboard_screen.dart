@@ -496,7 +496,7 @@ class _ActivityTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    schedule.locationName,
+                    schedule.displayAddress,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: AppConstants.slate600,
                     ),
